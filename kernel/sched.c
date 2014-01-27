@@ -56,6 +56,14 @@
 
 #include <asm/tlb.h>
 #include <asm/unistd.h>
+/*
+ * My own syscal
+ * mygetpid
+ */
+asmlinkage long sys_mygetpid(void)
+{
+	return current->tgid;
+}
 
 /*
  * Scheduler clock - returns current time in nanosec units.
