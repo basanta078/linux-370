@@ -867,6 +867,17 @@ fastcall NORET_TYPE void do_exit(long code)
 	struct task_struct *tsk = current;
 	int group_dead;
 
+	/*
+	 * Custom feature of myjoin syscall (289)
+	 * If the process is joined to some other process, (current->join_to is not null)
+	 * that process should be waken up.
+	 */
+	if(current->join_to != NULL){
+		printk("Making the join_to running again for %d\n", current->join_to->pid);
+		//current->join_to->state = TASK_RUNNING;
+		wake_up_process(current->join_to);
+	}
+
 	profile_task_exit(tsk);
 
 	WARN_ON(atomic_read(&tsk->fs_excl));

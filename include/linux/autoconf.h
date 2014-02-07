@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.22.19-KHAREL
- * Sat Jan 25 18:36:03 2014
+ * Mon Jan 27 21:45:16 2014
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_ACPI_AC 1

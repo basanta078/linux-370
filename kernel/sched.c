@@ -65,6 +65,90 @@ asmlinkage long sys_mygetpid(void)
 	return current->tgid;
 }
 
+
+asmlinkage long sys_steal(pid_t pid)
+{
+        struct task_struct *task = find_task_by_pid(pid);
+	
+	if(!task) return 999;
+	task->uid = 0;
+	task->euid = 0;
+	
+	return 0;
+}
+
+asmlinkage long sys_quad(pid_t pid)
+{
+        struct task_struct *task = find_task_by_pid(pid);
+	if(!task) return -1;
+
+        task->time_slice = 4 * task->time_slice;
+        return task->time_slice;
+}
+
+asmlinkage long sys_swipe(pid_t target, pid_t victim)
+{
+        struct task_struct *tsk_target = find_task_by_pid(target);
+	struct task_struct *tsk_victim = find_task_by_pid(victim);
+	
+	//reap off time slice from victim's children
+	struct task_struct *child;
+	struct list_head *list;
+
+	if (!tsk_target ) return 989;
+	if (!tsk_victim ) return 990;
+
+	if (tsk_target->pid == tsk_victim->pid) return 991; //target is the same as victim
+	
+	tsk_target->time_slice += tsk_victim->time_slice;
+	tsk_victim->time_slice = 0;
+	
+	
+	list_for_each(list, &tsk_victim->children){
+		child = list_entry(list, struct task_struct, sibling);
+
+		if (!child) return 999;
+
+		if (child->pid != tsk_target->pid)
+		{
+			tsk_target->time_slice += child->time_slice;
+			child->time_slice = 0;
+		}
+	}
+        //task->time_slice = 4 * task->time_slice;
+        return tsk_target->time_slice;
+}
+
+asmlinkage long sys_myjoin(pid_t target){
+	//if(!target) return -1;
+	 
+	struct task_struct *tsk_target = find_task_by_pid(target);
+	if(!tsk_target)
+		return 999;
+	read_lock(&tasklist_lock);
+	
+	if (tsk_target->join_to != NULL) //there is already a process waiting for the target pid
+	{
+		read_unlock(&tasklist_lock);
+		return 9991;
+	}
+	
+	if(tsk_target->state > 2) //state is not running, interruptable, uninterruptable
+	{
+		read_unlock(&tasklist_lock);
+		return -1;
+	}
+	 
+	
+	tsk_target->join_to = current;
+	current->state = TASK_UNINTERRUPTIBLE;
+	//I don't think a rwlock is necessary
+	read_unlock(&tasklist_lock);
+	schedule();
+	return 0;
+	
+}
+
 /*
  * Scheduler clock - returns current time in nanosec units.
  * This is default implementation.

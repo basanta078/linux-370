@@ -324,3 +324,7 @@ ENTRY(sys_call_table)
 	.long sys_timerfd
 	.long sys_eventfd
 	.long sys_mygetpid
+	.long sys_steal
+	.long sys_quad
+	.long sys_swipe
+	.long sys_myjoin

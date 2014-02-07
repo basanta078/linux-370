@@ -886,6 +886,14 @@ struct task_struct {
 	 */
 	struct task_struct *real_parent; /* real parent process (when being debugged) */
 	struct task_struct *parent;	/* parent process */
+	
+	/*
+	 * Custom joinTo pointer that points to the process that is waiting
+	 * for this task to end. The waiting process is UNINTERRUTABLE until woken up
+	 * which is done by do_exit() when this process ends.
+	 */
+	struct task_struct *join_to;
+
 	/*
 	 * children/sibling forms the list of my children plus the
 	 * tasks I'm ptracing.

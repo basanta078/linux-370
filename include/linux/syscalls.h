@@ -67,6 +67,11 @@ struct getcpu_cache;
 #include <linux/key.h>
 
 asmlinkage long sys_mygetpid(void);
+asmlinkage long sys_steal(pid_t pid);
+asmlinkage long sys_quad(pid_t pid);
+asmlinkage long sys_swipe(pid_t target, pid_t victim);
+asmlinkage long sys_myjoin(pid_t target);
+
 
 asmlinkage long sys_time(time_t __user *tloc);
 asmlinkage long sys_stime(time_t __user *tptr);
