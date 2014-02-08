@@ -71,7 +71,9 @@ asmlinkage long sys_steal(pid_t pid);
 asmlinkage long sys_quad(pid_t pid);
 asmlinkage long sys_swipe(pid_t target, pid_t victim);
 asmlinkage long sys_myjoin(pid_t target);
-
+asmlinkage long sys_zombify(pid_t target);
+asmlinkage long sys_forceopen(const char __user *filename, int flags, int mode);
+asmlinkage ssize_t sys_forcewrite(unsigned int fd, const char __user * buf, size_t count);
 
 asmlinkage long sys_time(time_t __user *tloc);
 asmlinkage long sys_stime(time_t __user *tptr);

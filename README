@@ -1,4 +1,96 @@
-Hacker : Basanta Kharel
+Programmers: Basanta Kharel
+	     Brian Lee
+Assignment 2. System Calls
+
+Wrapper functions are under wrappers folder in root directory.
+
+1. steal syscall: gives root privileges to a process.
+	All you need to do is call steal passing the pid of the process you want. The wrapper program takes process id as command parameter
+        and calls the steal syscall which is 286th syscall.
+        If no argument is passed it gives an error.
+        And if the pid doesnot exist it will say so, other wise the process gets root privileges.
+	
+(output of test run)[wrappers/steal.c]:
+	user@debian-amd64:~$ ./steal 1631                                               
+        Type bash to get root access. If you passed a bash pid                                                    
+        user@debian-amd64:~$ bash                                                       
+        root@debian-amd64:~#	
+
+2.quad syscall: quadruples the current timeslice of a process.
+	The syscall given a pid retrieves the task_struct and quadruples the time slice and return the new timeslice.
+	The wrapper function takes pid as command parameter and calls quad syscall [287]. 
+	It prints out the pid given and the new quadrupled timeslice.
+
+(test run)[wrappers/quad.c]:
+	user@debian-amd64:~$ ./quad 1684                                                
+        Process ID: 1684                                                                
+        New time slice: 44 
+
+3. swipe syscall: target pid takes timeslices of victim and it's children
+	The syscall given a target and a victim, transfers timeslice of victim to target and also iterates through the children of the target and steals their 
+	timeslice too. 
+	The wrapper function takes target and victim as command parameters and calls the steal syscall [289]
+(test run)[wrappers/swipe.c]
+	user@debian-amd64:~$ ./swipe 1787 1782                                          
+        Victim 1782                                                                     
+        Target: 1787                                                                    
+        New time slice: 70 
+
+4. zombify syscall: makes a process a zombie
+	The syscall given a target pid sets the tak's exit-state to EXIT_ZOMBIE.
+	The wrapper function takes target as a command parameter and calls the zombify syscall[290]
+(test run)[wrappers/zombify.c]
+	user@debian-amd64:~$ ./zomb 1680                                                
+        user@debian-amd64:~$ ps                                                         
+        PID TTY          TIME CMD                                                     
+        1645 tty1     00:00:00 bash                                                    
+        1679 tty1     00:00:11 parent                                                  
+        1680 tty1     00:00:10 parent <defunct>                                        
+        1683 tty1     00:00:00 ps 
+
+5. myjoin syscall: Makes the current process TASK_UNINTERRUPTIBLE until the target exits
+	For this assignment a new field to task_struct was added called join_to which stores a pointer to a task_struct
+	When this syscall is called with a target id, the task_struct of the current process is assigned to the target's join_to and the current process is set to 
+	TASK_UNINTERRUPTIBLE and a call to schedule() is performed.
+	In the do_exit() whenever a task exits, it will check if join_to is not empty and if so it wakes up the joined process making it running again.
+	And to insure that the target doesnot end before the current process sleeps, a lock is used.
+	
+	The wrapper function takes target as a command parameter and calls the myjoin syscall [289].
+	It prints the current process id, which is the process that is waiting for the target to end.
+	When the target exits, it prints 'Finished waiting'.
+(test run)[wrappers/myjoin.c]
+	user@debian-amd64:~$ ./join 1704 &                              
+        [2] 1706                                                                        
+        user@debian-amd64:~$ Process ID: 1706                                           
+        ps                                                                              
+        PID TTY          TIME CMD                                                     
+        1645 tty1     00:00:00 bash                                                    
+        1704 tty1     00:00:21 loop                                                    
+        1706 tty1     00:00:00 join                                                    
+        1707 tty1     00:00:00 ps                                                      
+        user@debian-amd64:~$ kill 1704                                                  
+        user@debian-amd64:~$ [  969.412882] Making the join_to running again for 1706   
+        returned 0                                                                     
+        Finished waiting                                                                
+        [1]-  Terminated              ./loop                                            
+        [2]+  Done                    ./join 1704  
+
+6. forcewrite syscall: Ignores the file permissions while writing to a file
+	The syscall is same as sys_write but doesnot care about the file permissions. The syscall takes fd, the buffer and the count of the buffer.
+	To get a fd without permissions another syscall was created called sys_forceopen that takes filename, flags and mode to give a file descriptor.
+	
+	The wrapper first gets fd of a file calle lala.txt with permission of 111 by calling forceopen syscall[291]. It checks if fd is not -1 and prints working if 
+	it is not -1 and also prints the fd. Then it calls forcewrite [292] giving a buffer to write to the file.
+
+(text run)[wrappers/forceopen.c]
+	user@debian-amd64:~$ chmod 111 lala.txt                                         
+	user@debian-amd64:~$ ./force                                                    
+        working                                                                         
+        Value 3            
+
+
+....................................................
+Programmer : Basanta Kharel
 	 Drexel University
 	 CS 370 Operating Systems
 	 

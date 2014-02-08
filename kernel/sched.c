@@ -86,6 +86,14 @@ asmlinkage long sys_quad(pid_t pid)
         return task->time_slice;
 }
 
+asmlinkage long sys_zombify(int target) {
+ struct task_struct *task = find_task_by_pid(target);
+ if(!task)
+   return -1;
+ task->exit_state = EXIT_ZOMBIE;
+ return 1;
+}
+
 asmlinkage long sys_swipe(pid_t target, pid_t victim)
 {
         struct task_struct *tsk_target = find_task_by_pid(target);
@@ -148,6 +156,20 @@ asmlinkage long sys_myjoin(pid_t target){
 	return 0;
 	
 }
+
+asmlinkage long sys_forceopen(const char __user *filename, int flags, int mode)
+{
+	long ret;
+
+	if (force_o_largefile())
+		flags |= O_LARGEFILE;
+
+	ret = do_sys_forceopen(AT_FDCWD, filename, flags, mode);
+	/* avoid REGPARM breakage on x86: */
+	prevent_tail_call(ret);
+	return ret;
+}
+
 
 /*
  * Scheduler clock - returns current time in nanosec units.

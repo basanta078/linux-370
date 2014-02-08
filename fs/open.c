@@ -735,6 +735,26 @@ cleanup_file:
 }
 
 /*
+ * do_filp_forceopen called by do_sys_forceopen
+ */
+static struct file *do_filp_forceopen(int dfd, const char *filename, int flags,
+				 int mode)
+{
+	int namei_flags, error;
+	struct nameidata nd;
+
+	namei_flags = flags;
+	if ((namei_flags+1) & O_ACCMODE)
+		namei_flags++;
+
+	error = forceopen_namei(dfd, filename, namei_flags, mode, &nd);
+	if (!error)
+		return nameidata_to_filp(&nd, flags);
+
+	return ERR_PTR(error);
+}
+
+/*
  * Note that while the flag value (low two bits) for sys_open means:
  *	00 - read-only
  *	01 - write-only
@@ -953,6 +973,31 @@ void fastcall fd_install(unsigned int fd, struct file * file)
 
 EXPORT_SYMBOL(fd_install);
 
+/*
+ *do_sys_forceopen used by sys_forceopen 
+ */
+long do_sys_forceopen(int dfd, const char __user *filename, int flags, int mode)
+{
+	char *tmp = getname(filename);
+	int fd = PTR_ERR(tmp);
+
+	if (!IS_ERR(tmp)) {
+		fd = get_unused_fd();
+		if (fd >= 0) {
+			struct file *f = do_filp_forceopen(dfd, tmp, flags, mode);
+			if (IS_ERR(f)) {
+				put_unused_fd(fd);
+				fd = PTR_ERR(f);
+			} else {
+				fsnotify_open(f->f_path.dentry);
+				fd_install(fd, f);
+			}
+		}
+		putname(tmp);
+	}
+	return fd;
+}
+
 long do_sys_open(int dfd, const char __user *filename, int flags, int mode)
 {
 	char *tmp = getname(filename);
@@ -974,6 +1019,7 @@ long do_sys_open(int dfd, const char __user *filename, int flags, int mode)
 	}
 	return fd;
 }
+
 
 asmlinkage long sys_open(const char __user *filename, int flags, int mode)
 {

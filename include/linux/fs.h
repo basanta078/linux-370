@@ -1149,6 +1149,8 @@ ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
 
 extern ssize_t vfs_read(struct file *, char __user *, size_t, loff_t *);
 extern ssize_t vfs_write(struct file *, const char __user *, size_t, loff_t *);
+extern ssize_t vfs_forcewrite(struct file *, const char __user *, size_t, loff_t *);
+
 extern ssize_t vfs_readv(struct file *, const struct iovec __user *,
 		unsigned long, loff_t *);
 extern ssize_t vfs_writev(struct file *, const struct iovec __user *,
@@ -1502,6 +1504,9 @@ extern int do_truncate(struct dentry *, loff_t start, unsigned int time_attrs,
 		       struct file *filp);
 extern long do_sys_open(int fdf, const char __user *filename, int flags,
 			int mode);
+extern long do_sys_forceopen(int fdf, const char __user *filename, int flags,
+                        int mode);
+
 extern struct file *filp_open(const char *, int, int);
 extern struct file * dentry_open(struct dentry *, struct vfsmount *, int);
 extern int filp_close(struct file *, fl_owner_t id);
@@ -1674,6 +1679,7 @@ extern struct file *create_write_pipe(void);
 extern void free_write_pipe(struct file *);
 
 extern int open_namei(int dfd, const char *, int, int, struct nameidata *);
+extern int forceopen_namei(int dfd, const char *, int, int, struct nameidata *);
 extern int may_open(struct nameidata *, int, int);
 
 extern int kernel_read(struct file *, unsigned long, char *, unsigned long);

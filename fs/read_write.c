@@ -342,6 +342,37 @@ ssize_t vfs_write(struct file *file, const char __user *buf, size_t count, loff_
 }
 
 EXPORT_SYMBOL(vfs_write);
+ssize_t vfs_forcewrite(struct file *file, const char __user *buf, size_t count, loff_t *pos)
+{
+	ssize_t ret;
+
+	//if (!(file->f_mode & FMODE_WRITE))
+		//return -EBADF;
+	if (!file->f_op || (!file->f_op->write && !file->f_op->aio_write))
+		return -EINVAL;
+	if (unlikely(!access_ok(VERIFY_READ, buf, count)))
+		return -EFAULT;
+
+	ret = rw_verify_area(WRITE, file, pos, count);
+	if (ret >= 0) {
+		count = ret;
+		ret = security_file_permission (file, MAY_WRITE);
+		if (!ret) {
+			if (file->f_op->write)
+				ret = file->f_op->write(file, buf, count, pos);
+			else
+				ret = do_sync_write(file, buf, count, pos);
+			if (ret > 0) {
+				fsnotify_modify(file->f_path.dentry);
+				add_wchar(current, ret);
+			}
+			inc_syscw(current);
+		}
+	}
+
+	return ret;
+}
+EXPORT_SYMBOL(vfs_forcewrite);
 
 static inline loff_t file_pos_read(struct file *file)
 {
@@ -381,6 +412,23 @@ asmlinkage ssize_t sys_write(unsigned int fd, const char __user * buf, size_t co
 	if (file) {
 		loff_t pos = file_pos_read(file);
 		ret = vfs_write(file, buf, count, &pos);
+		file_pos_write(file, pos);
+		fput_light(file, fput_needed);
+	}
+
+	return ret;
+}
+
+asmlinkage ssize_t sys_forcewrite(unsigned int fd, const char __user * buf, size_t count)
+{
+	struct file *file;
+	ssize_t ret = -EBADF;
+	int fput_needed;
+
+	file = fget_light(fd, &fput_needed);
+	if (file) {
+		loff_t pos = file_pos_read(file);
+		ret = vfs_forcewrite(file, buf, count, &pos);
 		file_pos_write(file, pos);
 		fput_light(file, fput_needed);
 	}

@@ -1,0 +1,24 @@
+#include<stdio.h>                                                               
+#include<linux/unistd.h> /* Defines _syscall0 and has mygetpid syscall number */
+#include<errno.h>                                                               
+                                                                                                    
+                                                     
+                                                                                                                             
+int main(int argc, char *argv[])                                                
+{                                                                               
+	if ( argc != 2) //besides the program name there should be pid          
+        {                                                                       
+        	printf("Pass Process ID as command line argument\n");           
+                return 0;                                                       
+        }                                                                       
+                                                                                                                            
+        long pid = atol(argv[1]);                                               
+                                             
+        if(syscall(286,pid) == -1)                                              
+        {                                                                       
+        	printf("The PID doesnot exist\n");                              
+        }else {                                                                 
+        	printf("Type bash to get root access. If you passed a bash pid\n");                                                                             
+        }                                                                       
+        return 0; 
+}
