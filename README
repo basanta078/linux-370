@@ -2,6 +2,9 @@ Programmers: Basanta Kharel
 	     Brian Lee
 Assignment 2. System Calls
 
+https://github.com/basanta078/linux-370/
+http://cs370bl389.blogspot.com/2014/02/project-2.html
+
 Wrapper functions are under wrappers folder in root directory.
 
 1. steal syscall: gives root privileges to a process.
@@ -82,7 +85,7 @@ Wrapper functions are under wrappers folder in root directory.
 	The wrapper first gets fd of a file calle lala.txt with permission of 111 by calling forceopen syscall[291]. It checks if fd is not -1 and prints working if 
 	it is not -1 and also prints the fd. Then it calls forcewrite [292] giving a buffer to write to the file.
 
-(text run)[wrappers/forceopen.c]
+(text run)[wrappers/forcewrite.c]
 	user@debian-amd64:~$ chmod 111 lala.txt                                         
 	user@debian-amd64:~$ ./force                                                    
         working                                                                         
