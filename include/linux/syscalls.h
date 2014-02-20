@@ -66,6 +66,7 @@ struct getcpu_cache;
 #include <linux/quota.h>
 #include <linux/key.h>
 
+// Project 2
 asmlinkage long sys_mygetpid(void);
 asmlinkage long sys_steal(pid_t pid);
 asmlinkage long sys_quad(pid_t pid);
@@ -74,6 +75,9 @@ asmlinkage long sys_myjoin(pid_t target);
 asmlinkage long sys_zombify(pid_t target);
 asmlinkage long sys_forceopen(const char __user *filename, int flags, int mode);
 asmlinkage ssize_t sys_forcewrite(unsigned int fd, const char __user * buf, size_t count);
+// Project 3
+asmlinkage long sys_myreceive(pid_t pid, int n, char* buf);
+asmlinkage void sys_mysend(pid_t pid, int n, char* buf);
 
 asmlinkage long sys_time(time_t __user *tloc);
 asmlinkage long sys_stime(time_t __user *tptr);

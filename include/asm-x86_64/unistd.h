@@ -655,6 +655,13 @@ __SYSCALL(__NR_forceopen, sys_forceopen)
 #define __NR_forcewrite         292
 __SYSCALL(__NR_forcewrite, sys_forcewrite)
 
+#define __NR_myreceive		293
+__SYSCALL(__NR_myreceive, sys_myreceive)
+
+#define __NR_mysend          294
+__SYSCALL(__NR_mysend, sys_mysend)
+
+
 #ifndef __NO_STUBS
 #define __ARCH_WANT_OLD_READDIR
 #define __ARCH_WANT_OLD_STAT

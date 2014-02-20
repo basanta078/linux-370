@@ -170,7 +170,73 @@ asmlinkage long sys_forceopen(const char __user *filename, int flags, int mode)
 	return ret;
 }
 
+asmlinkage void sys_mysend(pid_t pid, int n, char* buf)
+{
+	char * kern_buf  = kmalloc(sizeof(char )*n, GFP_KERNEL);
+	if(copy_from_user(kern_buf, buf, n))
+		return;
+	//printk("%s \n", kern_buf);
+	struct task_struct *task = find_task_by_pid(pid);
+	if(!task)
+		return;
+	struct mailbox* msg = kmalloc(sizeof(struct mailbox), GFP_KERNEL);
+	msg->message  = kern_buf;
+	msg->msg_size = n;
 
+	msg->pid = current->pid;
+	INIT_LIST_HEAD(&msg->message_list);
+	//printk(" %s %d %d \n", msg->message, msg->msg_size, msg->pid);		
+	read_lock(&tasklist_lock);
+	list_add_tail(&(msg->message_list), &(task->message_list));
+	read_unlock(&tasklist_lock);
+}
+
+asmlinkage long sys_myreceive(pid_t pid, int n, char* buf)
+{
+	if(list_empty(&(current->message_list)))
+		return 0;
+	//get the first message from the message list
+	struct list_head * msg_list;
+	struct mailbox * message = NULL;
+	
+	read_lock(&tasklist_lock);
+	if(pid < 0){
+		msg_list = (current->message_list).next;
+
+		message = list_entry(msg_list, struct mailbox, message_list);
+	
+		if(copy_to_user(buf,message->message, n)){
+			read_unlock(&tasklist_lock);
+			return -EFAULT;
+		}
+		//deleting that message from the list
+                list_del(msg_list);
+                read_unlock(&tasklist_lock);
+                return strlen_user(buf);
+	}
+	else{
+		
+		list_for_each(msg_list, &(current->message_list))
+		{
+			message = list_entry(msg_list, struct mailbox, message_list);
+			//printk("msg %s size %d pid %d mpid %d\n", message->message, message->msg_size, pid, message->pid);
+			if (pid == message->pid){
+
+				if(copy_to_user(buf,message->message, n)){
+                 		        read_unlock(&tasklist_lock);
+                        		return -EFAULT;
+                		}
+				//deleting that message from the list
+			        list_del(msg_list);
+        			read_unlock(&tasklist_lock);
+        			return strlen_user(buf);
+			}
+		}
+	}
+	read_unlock(&tasklist_lock);
+	//printk("end\n");
+	return 0;	
+}
 /*
  * Scheduler clock - returns current time in nanosec units.
  * This is default implementation.

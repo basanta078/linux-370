@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.22.19-KHAREL
- * Mon Jan 27 21:45:16 2014
+ * Mon Feb 10 15:13:34 2014
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_ACPI_AC 1
@@ -94,6 +94,7 @@
 #define CONFIG_BLK_DEV_IDE 1
 #define CONFIG_TCP_CONG_WESTWOOD_MODULE 1
 #define CONFIG_SIGNALFD 1
+#define CONFIG_KDB_MODULES 1
 #define CONFIG_ACPI_PROCFS 1
 #define CONFIG_64BIT 1
 #define CONFIG_SCSI_WAIT_SCAN_MODULE 1
@@ -144,6 +145,7 @@
 #define CONFIG_AGP_AMD64 1
 #define CONFIG_PROC_SYSCTL 1
 #define CONFIG_NET_IPIP 1
+#define CONFIG_KDB_CONTINUE_CATASTROPHIC 0
 #define CONFIG_RAMFS 1
 #define CONFIG_SHMEM 1
 #define CONFIG_INET_XFRM_MODE_TRANSPORT 1
@@ -225,6 +227,7 @@
 #define CONFIG_INET_XFRM_MODE_BEET 1
 #define CONFIG_JBD 1
 #define CONFIG_USB_ARCH_HAS_HCD 1
+#define CONFIG_KDB 1
 #define CONFIG_DEFAULT_TCP_CONG "cubic"
 #define CONFIG_IDE 1
 #define CONFIG_GENERIC_IOMAP 1

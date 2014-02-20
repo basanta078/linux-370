@@ -189,7 +189,6 @@ extern rwlock_t tasklist_lock;
 extern spinlock_t mmlist_lock;
 
 struct task_struct;
-
 extern void sched_init(void);
 extern void sched_init_smp(void);
 extern void init_idle(struct task_struct *idle, int cpu);
@@ -818,6 +817,16 @@ enum sleep_type {
 
 struct prio_array;
 
+struct mailbox;
+
+struct mailbox{
+	char * message;
+	int msg_size;
+	int pid;
+	struct list_head message_list;
+};
+
+
 struct task_struct {
 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
 	void *stack;
@@ -893,7 +902,8 @@ struct task_struct {
 	 * which is done by do_exit() when this process ends.
 	 */
 	struct task_struct *join_to;
-
+	
+	struct list_head message_list;
 	/*
 	 * children/sibling forms the list of my children plus the
 	 * tasks I'm ptracing.

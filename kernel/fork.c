@@ -1032,6 +1032,11 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 
 	INIT_LIST_HEAD(&p->children);
 	INIT_LIST_HEAD(&p->sibling);
+	
+	/* my code initializing message_list for the mailbox project
+	 */
+	INIT_LIST_HEAD(&p->message_list);
+
 	p->vfork_done = NULL;
 	spin_lock_init(&p->alloc_lock);
 
