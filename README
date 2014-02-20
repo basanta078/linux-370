@@ -1,4 +1,55 @@
 Programmers: Basanta Kharel
+	     Brial Lee
+Assignment 3. Mailbox
+
+https://github.com/basanta078/linux-370/
+http://cs370bl389.blogspot.com/2014/02/project-3.html
+
+Wrapper function is under Wrapper/Mailbox/mailer.c
+
+mailer.c has the main process fork a child and the child fork a grandchild.
+Each of the 3 processes sends a message each to the 2 other processes, making
+a total of 2 message send per process. 
+
+And all 3 processes wait and receive messages until they get 2 messages. When they do
+they exit. 
+
+
+The first thing we did was to add a list_head element called message_list to task_struct.
+That was easy but we have to initialize a list_head before it can be used.
+For that it needs to be initialized when a process is created. 
+
+The process is as follows. Task is created as a result of a fork(), which calls do_fork() to create 
+a new task. Inside do_fork it call copy_process to initialize the task properly. This is where the other
+head_list like children are initialized. 
+We simply had to add INIT_LIST_HEAD(&p->message_list); Here p points to the task struct.
+
+In order for the mailbox to work we needed a struct which was named Struct Mailbox.
+It has 4 elements, char * message, int msg_size, int pid (the one it received from), and list_head to connect
+it to the message_list in task_struct.
+
+So the backbone is set.
+
+Now for the syscalls.
+mysend takes pid, len and buffer. 
+It converts the buffer to kernel space, checks that pid is valid, makes a mailbox struct adds the info to it.
+Initialize the list_head in mailbox and adds it to the message_list. 
+list_add_tail(&(msg->message_list), &(task->message_list));
+We had some trouble figuring out the memory stuff. We were not kmallocing but just initializing mailbox in local scope
+so when the syscall was done, the memory would disappear. 
+
+The next syscall was myreceive, taking pid, len, and buff
+The pid is from the task it is receiving from. 
+myreceive returns 0 if the message_list is empty.
+If not and pid is positive, it iterates through the list and finds a message with that pid. 
+Then it converts the message to user space and deletes the message from the list.
+
+The syscalls are not blocking at all. So when a mysend sends a message it is not waiting for another process to receive it.
+It is just added to the receiver's message_list. Same with myreceive, if there is not message 0 is returned. If the pid passed
+has not send any message also a 0 is send back.
+
+-----------------------------------------------------------------------------------
+Programmers: Basanta Kharel
 	     Brian Lee
 Assignment 2. System Calls
 
